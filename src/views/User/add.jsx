@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { BASE_URL } from '../../config/apiurl';
 
 function AddNewUser() {
     const [addUser, setAddUser] = useState({});
@@ -23,7 +24,7 @@ function AddNewUser() {
         e.preventDefault();
 
         try {
-            const response = await fetch("http://localhost:4000/api/v1/users/add", {  
+            const response = await fetch(`${BASE_URL}/users/add`, {  
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -4,6 +4,7 @@ import { FiArrowLeft } from 'react-icons/fi';
 import { ToastContainer, toast } from 'react-toastify';
 import { useNavigate, useLocation } from 'react-router-dom';
 import 'react-toastify/dist/ReactToastify.css';
+import { BASE_URL } from '../../config/apiurl';
 
 const SubCategoryUpdate = () => {
     const location = useLocation();
@@ -38,7 +39,7 @@ const SubCategoryUpdate = () => {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const response = await fetch('http://localhost:4001/api/v1/categories/');
+                const response = await fetch(`${BASE_URL}/categories/`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch categories');
                 }
@@ -72,7 +73,7 @@ const SubCategoryUpdate = () => {
         }
 
         try {
-            const response = await fetch(`http://localhost:4001/api/v1/subcategories/edit/${id}`, {
+            const response = await fetch(`${BASE_URL}/subcategories/edit/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

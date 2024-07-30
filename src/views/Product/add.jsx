@@ -7,6 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import 'ckeditor5/ckeditor5.css';
+import { BASE_URL } from '../../config/apiurl';
 
 const AddProduct = () => {
     const [addProduct, setAddProduct] = useState({
@@ -30,7 +31,7 @@ const AddProduct = () => {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const response = await fetch('http://localhost:4001/api/v1/categories/');
+                const response = await fetch(`${BASE_URL}/categories/`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch categories');
                 }
@@ -51,7 +52,7 @@ const AddProduct = () => {
 
     const fetchSubcategories = async (categoryId) => {
         try {
-            const response = await fetch(`http://localhost:4001/api/v1/subcategories/category/${categoryId}`, {
+            const response = await fetch(`${BASE_URL}/subcategories/category/${categoryId}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
@@ -140,7 +141,7 @@ const AddProduct = () => {
                 }
             });
 
-            const response = await fetch("http://localhost:4001/api/v1/products/add", {
+            const response = await fetch(`${BASE_URL}/products/add`, {
                 method: 'POST',
                 body: formData
             });

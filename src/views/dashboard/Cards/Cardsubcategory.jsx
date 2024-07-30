@@ -4,6 +4,7 @@ import { styled } from '@mui/material/styles'; // Import from @mui/material/styl
 import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupee';
 import { Link } from 'react-router-dom';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import { BASE_URL } from '../../../config/apiurl';
 
 const GradientCard = styled(Card)(({ theme }) => ({
   background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
@@ -19,7 +20,7 @@ function CardSale() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('http://localhost:4001/api/v1/subcategories/get/counts');
+        const response = await fetch(`${BASE_URL}/subcategories/get/counts`);
         const data = await response.json();
         setSale(data);
       } catch (error) {

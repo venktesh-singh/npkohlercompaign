@@ -7,6 +7,7 @@ import TablePagination from '@mui/material/TablePagination';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import asiamama from '../../image/logo.png';
+import { BASE_URL } from '../../config/apiurl';
 
 function SubCategoryList() {
     const [page, setPage] = useState(0);
@@ -17,7 +18,7 @@ function SubCategoryList() {
 
     const fetchData = async () => {
         try {
-            const response = await fetch('http://localhost:4001/api/v1/subcategories/');
+            const response = await fetch(`${BASE_URL}/subcategories/`);
             if (!response.ok) {
                 throw new Error('Failed to fetch subcategories');
             }
@@ -34,7 +35,7 @@ function SubCategoryList() {
 
     const handleDelete = async (id) => {
         try {
-            const response = await fetch(`http://localhost:4001/api/v1/subcategories/${id}`, {
+            const response = await fetch(`${BASE_URL}/subcategories/${id}`, {
                 method: 'DELETE',
             });
 

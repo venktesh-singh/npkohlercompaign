@@ -6,6 +6,7 @@ import CardCategoryCount from './Cards/CardCategoryCount';
 import CardProduct from './Cards/CardProduct';
 import Cardsubcategory from './Cards/Cardsubcategory';
 import CardTotalUser from './Cards/CardTotalUser';
+import { BASE_URL } from '../../../src/config/apiurl';
 
 const DashDefault = () => {
   const [allUser, setAllUser] = useState([]);
@@ -14,7 +15,7 @@ const DashDefault = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetch('http://localhost:4001/api/v1/users/');
+        const response = await fetch(`${BASE_URL}/users/`);
         if (!response.ok) {
           throw new Error('Failed to fetch users');
         }
@@ -29,7 +30,7 @@ const DashDefault = () => {
   
   const updateStatus = async (id, newStatus) => {
     try {
-        const response = await fetch(`http://localhost:4001/api/v1/users/status/update/${id}`, {
+        const response = await fetch(`${BASE_URL}/users/status/update/${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -59,7 +60,7 @@ const DashDefault = () => {
 
 const fetchData = async () => {
   try {
-      const response = await fetch('http://localhost:4001/api/v1/products/');
+      const response = await fetch(`${BASE_URL}/products/`);
       if (!response.ok) {
           throw new Error('Failed to fetch orders');
       }

@@ -4,6 +4,7 @@ import { styled } from '@mui/material/styles'; // Import from @mui/material/styl
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { Link } from 'react-router-dom';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import { BASE_URL } from '../../../config/apiurl';
 
 const GradientCard = styled(Card)(({ theme }) => ({
   background: 'linear-gradient(to right, #43e97b 0%, #38f9d7 100%)',
@@ -19,7 +20,7 @@ function CardTotalUser() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('http://localhost:4001/api/v1/users/get/counts');
+        const response = await fetch(`${BASE_URL}/users/get/counts`);
         const data = await response.json();
         setUsers(data);
       } catch (error) {

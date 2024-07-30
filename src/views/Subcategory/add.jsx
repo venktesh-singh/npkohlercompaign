@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { BASE_URL } from '../../config/apiurl';
 
 const AddSubCategory = () => {
     const [addSubcategory, setAddSubcategory] = useState({
@@ -28,7 +29,7 @@ const AddSubCategory = () => {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const response = await fetch('http://localhost:4001/api/v1/categories/');
+                const response = await fetch(`${BASE_URL}/categories/`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch categories');
                 }
@@ -56,7 +57,7 @@ const AddSubCategory = () => {
         }
 
         try {
-            const response = await fetch("http://localhost:4001/api/v1/subcategories/add", {
+            const response = await fetch(`${BASE_URL}/subcategories/add`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

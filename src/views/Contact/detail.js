@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
 import moment from 'moment';
 
+
 function ContactDetail() {
     const navigate = useNavigate();
     const location = useLocation();

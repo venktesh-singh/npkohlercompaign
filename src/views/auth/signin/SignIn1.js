@@ -4,6 +4,7 @@ import * as Yup from 'yup';
 import { Formik } from 'formik';
 import { useNavigate } from 'react-router-dom';
 import logo from '../../../image/logo.png'
+import { BASE_URL } from '../../../config/apiurl';
 
 const Signin1 = () => {
   const [error, setError] = useState(null);
@@ -11,7 +12,7 @@ const Signin1 = () => {
 
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
-      const response = await fetch('http://localhost:4001/api/v1/users/login/', {
+      const response = await fetch(`${BASE_URL}/users/login/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',  

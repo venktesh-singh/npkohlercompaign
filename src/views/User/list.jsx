@@ -7,6 +7,7 @@ import TablePagination from '@mui/material/TablePagination';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import asiamama from '../../image/logo.png';
+import { BASE_URL } from '../../config/apiurl';
 
 function UserList() {
     const [page, setPage] = useState(0);
@@ -17,7 +18,7 @@ function UserList() {
     
     const fetchData = async () => {
         try {
-            const response = await fetch('http://localhost:4001/api/v1/users/');
+            const response = await fetch(`${BASE_URL}/users/`);
             if (!response.ok) {
                 throw new Error('Failed to fetch users');
             }
@@ -36,7 +37,7 @@ function UserList() {
 
     const handleDelete = async (id) => {
         try {
-            const response = await fetch(`http://localhost:4000/api/v1/users/${id}`, {
+            const response = await fetch(`${BASE_URL}/users/${id}`, {
                 method: 'DELETE',
             });
 

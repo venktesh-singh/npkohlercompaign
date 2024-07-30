@@ -7,6 +7,7 @@ import TablePagination from '@mui/material/TablePagination';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import asiamama from '../../image/logo.png';
+import { BASE_URL } from '../../config/apiurl';
 
 function PopFormList() {
     const [page, setPage] = useState(0);
@@ -17,7 +18,7 @@ function PopFormList() {
     
     const fetchData = async () => {
         try {
-            const response = await fetch('http://localhost:4001/api/v1/commonforms/',{
+            const response = await fetch(`${BASE_URL}/commonforms/`,{
                 method: 'GET',
             });
             if (!response.ok) {
@@ -36,7 +37,7 @@ function PopFormList() {
 
     const handleDelete = async (id) => {
         try {
-            const response = await fetch(`http://localhost:4001/api/v1/commonforms/${id}`, {
+            const response = await fetch(`${BASE_URL}/commonforms/${id}`, {
                 method: 'DELETE',
             });
 

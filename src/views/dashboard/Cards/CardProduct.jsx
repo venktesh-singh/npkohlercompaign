@@ -4,6 +4,7 @@ import { styled } from '@mui/material/styles'; // Import from @mui/material/styl
 import LocalMallOutlinedIcon from '@mui/icons-material/LocalMallOutlined';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { Link } from 'react-router-dom';
+import { BASE_URL } from '../../../config/apiurl';
 
 const GradientCard = styled(Card)(({ theme }) => ({
   background: 'linear-gradient(45deg, #4CAF50 30%, #8BC34A 90%)',
@@ -19,7 +20,7 @@ function CardProduct() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('http://localhost:4001/api/v1/products/get/counts');
+        const response = await fetch(`${BASE_URL}/products/get/counts`);
         const data = await response.json();
         setTotalProduct(data);
       } catch (e) {

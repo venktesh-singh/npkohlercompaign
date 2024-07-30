@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { BASE_URL } from '../../config/apiurl';
 
 const AddCategory = () => {
     const [addCategory, setAddCategory] = useState({
@@ -26,7 +27,7 @@ const AddCategory = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch("http://localhost:4001/api/v1/categories/add", {
+            const response = await fetch(`${BASE_URL}/categories/add`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
