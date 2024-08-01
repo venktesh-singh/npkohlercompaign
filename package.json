@@ -3,6 +3,7 @@
   "version": "2.0.0",
   "private": false,
   "license": "MIT",
+  "homepage": "https://npkohlercompaign.vercel.app/",
   "dependencies": {
     "@ckeditor/ckeditor5-build-classic": "^42.0.2",
     "@ckeditor/ckeditor5-paragraph": "^42.0.2",
