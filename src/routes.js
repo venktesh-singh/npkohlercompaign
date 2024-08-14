@@ -143,6 +143,22 @@ const routes = [
         path: '/contact/detail',
         element: lazy(() => import('./views/Contact/detail'))
       },
+      {
+        path: '/subsubcategory/list',
+        element: lazy(() => import('./views/Subsubcategory/list'))
+      },
+      {
+        path: '/subsubcategory/detail',
+        element: lazy(() => import('./views/Subsubcategory/detail'))
+      },
+      {
+        path: '/subsubcategory/add',
+        element: lazy(() => import('./views/Subsubcategory/add'))
+      },
+      {
+        path: '/subsubcategory/edit/:id',
+        element: lazy(() => import('./views/Subsubcategory/edit'))
+      },
     ]
   }
 ];

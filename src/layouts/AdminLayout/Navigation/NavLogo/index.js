@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 import { ConfigContext } from '../../../../contexts/ConfigContext';
 import * as actionType from '../../../../store/actions';
-import Logo from '../../../../image/logo.png'
+import AdminLogo from '../../../../image/admin-logo.svg'
 
 const NavLogo = () => {
   const configContext = useContext(ConfigContext);
@@ -19,7 +19,7 @@ const NavLogo = () => {
     <React.Fragment>
       <div className="navbar-brand header-logo">
         <Link to="/app/dashboard/default" className="b-brand">
-          <img src={Logo} alt="" />
+          <img src={AdminLogo} alt="NP Kohler Compaign" />
         
         </Link>
         <Link to="#" className={toggleClass.join(' ')} id="mobile-collapse" onClick={() => dispatch({ type: actionType.COLLAPSE_MENU })}>

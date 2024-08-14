@@ -15,17 +15,17 @@ function SubCategoryList() {
     const [subcategory, setSubCategory] = useState([]);
     const [error, setError] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
-
+   
     const fetchData = async () => {
         try {
-            const response = await fetch(`${BASE_URL}/subcategories/`);
+            const response = await fetch(`${BASE_URL}/subsubcategories/`);
             if (!response.ok) {
-                throw new Error('Failed to fetch subcategories');
+                throw new Error('Failed to fetch subsubcategories');
             }
             const data = await response.json();
-            setSubCategory(data.subcat || []);
+            setSubCategory(data.subsubcat || []);
         } catch (err) {
-            setError(err.message);
+            setError('Error fetching subsubcategories: ' + err.message);
         }
     };
 
@@ -85,10 +85,11 @@ function SubCategoryList() {
     };
 
     const filteredSubCategory = subcategory.filter(cat =>
-        (cat?.subcat_name && cat.subcat_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (cat?.subsubcat_name && cat.subsubcat_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (cat?.subcategory.subcat_name && cat.subcategory.subcat_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (cat?.category?.cat_name && cat.category.cat_name.toLowerCase().includes(searchTerm.toLowerCase()))
     );
-    console.log("Check category",subcategory)
+     
     return (
         <React.Fragment>
             <ToastContainer
@@ -108,12 +109,12 @@ function SubCategoryList() {
                     <Card.Header>
                         <Row className="align-items-center">
                             <Col md={3}>
-                                <Card.Title as="h5">Subcategory List</Card.Title>
+                                <Card.Title as="h5">Subsubcategory List</Card.Title>
                             </Col>
                             <Col md={5}>
                                 <Form.Control
                                     type="search"
-                                    placeholder="Search Subcategory Name..."
+                                    placeholder="Search Category, Subcategory, Subsubcategory Name..."
                                     value={searchTerm}
                                     onChange={handleSearchChange}
                                 />
@@ -122,11 +123,11 @@ function SubCategoryList() {
                                 <Button
                                     className="mb-2 text-right"
                                     variant="primary"
-                                    to={`/subcategory/add`}
+                                    to={`/subsubcategory/add`}
                                     style={{ float: 'right' }}
                                     as={Link}
                                 >
-                                    <FiPlus style={{ marginRight: '3px', fontSize: '15px' }} /> Add Subcategory
+                                    <FiPlus style={{ marginRight: '3px', fontSize: '15px' }} /> Add Subsubcategory
                                 </Button>
                             </Col>
                         </Row>
@@ -139,6 +140,7 @@ function SubCategoryList() {
                                     <th>Category Pic</th>
                                     <th>Category</th>
                                     <th>Subcategory</th>
+                                    <th>Subsubcategory</th>
                                     <th>Date</th>
                                     <th>Action</th>
                                 </tr>
@@ -155,22 +157,29 @@ function SubCategoryList() {
                                                 <h6 className="mb-1">{cat.category?.cat_name}</h6>
                                             </td>
                                             <td>
-                                                <h6 className="mb-1">{cat.subcat_name}</h6>
+                                                <h6 className="mb-1">{cat.subcategory.subcat_name}</h6>
+                                            </td>
+                                            <td>
+                                                <h6 className="mb-1">{cat.subsubcat_name}</h6>
                                             </td>
                                             <td>
                                                 <h6 className="m-0">{moment(cat.dateCreated).format('Do MMMM YYYY')}</h6>
                                             </td>
                                             <td>
-                                                <Link to={`/subcategory/detail`} state={{ cat }} style={{ padding: 10 }}>
+                                                <Link to={`/subsubcategory/detail`} state={{ cat }} style={{ padding: 10 }}>
                                                     <FiEye size='25' className="f-30 text-c-green" />
                                                 </Link>
-                                                <Link style={{ padding: 2 }}  to={`/subcategory/edit/${cat._id}`}
-                                                    state={{ 
-                                                        cat:{
-                                                            id: cat._id,
-                                                            category: cat.category._id,
-                                                            subcat_name: cat.subcat_name
-                                                    } }}
+                                                <Link style={{ padding: 2 }} to={`/subsubcategory/edit/${cat._id}`}
+                                                        state={{ 
+                                                            cat: {
+                                                                id: cat._id,
+                                                                cat_name: cat.category?._id,
+                                                                subcat_name: cat.subcategory?._id,
+                                                                subsubcat_name: cat.subsubcat_name,
+                                                                meta_title:cat.meta_title,
+                                                                meta_desc: cat.meta_desc
+                                                            }  
+                                                        }}
                                                     >
                                                     <FiEdit size='25' className="f-30 text-c-blue" />
                                                 </Link>
@@ -187,7 +196,7 @@ function SubCategoryList() {
                                 ) : (
                                     <tr>
                                         <td colSpan="6" className="text-center">
-                                            {error ? error : "No Subcategory available"}
+                                            {error ? error : "No Subsubcategory available"}
                                         </td>
                                     </tr>
                                 )}

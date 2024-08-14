@@ -45,11 +45,8 @@ const ProductDetail = () => {
                                 <Col md={4}>
                                     <Card.Text><b>Subtitle:</b> {proData?.product_subtitle}</Card.Text>
                                 </Col>
-                                <Col md={4}>
-                                    <Card.Text><b>Short Desc:</b> {proData?.short_desc}</Card.Text>
-                                </Col>
                             </Row>
-                            <Row>
+                            <Row className='mt-4'>
                                 <Col md={4}>
                                     <Card.Text><b>Category:</b> {proData?.category?.cat_name}</Card.Text>
                                 </Col>
@@ -57,12 +54,18 @@ const ProductDetail = () => {
                                     <Card.Text><b>Subcategory:</b> {proData?.subcategory?.subcat_name}</Card.Text>
                                 </Col>
                                 <Col md={4}>
-                                    <Card.Text><b>Date Created:</b> {moment(proData?.dateCreated).format('Do MMMM YYYY')}</Card.Text>
+                                    <Card.Text><b>Subsubcategory:</b> {proData?.subsubcategory?.subsubcat_name}</Card.Text>
                                 </Col>
                             </Row>
                             <Row>
-                                <Col md={12}>
+                                <Col md={12} className='mt-4'>
+                                    <Card.Text><b>Short Desc:</b> {proData?.short_desc}</Card.Text>
+                                </Col>
+                                <Col md={12} className='mt-4'>
                                     <Card.Text><b>Long Desc:</b> {proData?.long_desc}</Card.Text>
+                                </Col>
+                                <Col md={12} className='mt-4'>
+                                    <Card.Text><b>Date Created:</b> {moment(proData?.dateCreated).format('Do MMMM YYYY')}</Card.Text>
                                 </Col>
                             </Row>
                         </Card.Body>
@@ -94,18 +97,18 @@ const ProductDetail = () => {
                                     <Col md={4}>
                                         <Card.Text><b>Price:</b> {att?.price}</Card.Text>
                                     </Col>
-                                    <Col md={4}>
+                                    <Col md={4} className='mt-4'>
                                         <Card.Text><b>Sale Price:</b> {att?.sale_price}</Card.Text>
                                     </Col>
-                                    <Col md={4}>
+                                    <Col md={4} className='mt-4'>
                                         <Card.Text><b>Stock:</b> {att?.stock}</Card.Text>
                                     </Col>
-                                    <Col md={4}>
+                                    <Col md={4} className='mt-4'>
                                         <Card.Text>
                                             <b>Single Image:</b> <Image src={att?.single_img} height={30} width={30} alt={att?.sku} fluid />
                                         </Card.Text>
                                     </Col>
-                                    <Col md={4}>
+                                    <Col md={4} className='mt-4'>
                                         <Card.Text>
                                             <b>Color Image:</b> <Image src={att?.color_image} height={30} width={30} alt={att?.color_name} fluid />
                                         </Card.Text>

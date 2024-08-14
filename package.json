@@ -1,9 +1,9 @@
 {
-  "name": "datta-able-free-react-admin-template",
+  "name": "npkohleradmin",
   "version": "2.0.0",
   "private": false,
-  "homepage": "https://codedthemes.com/demos/admin-templates/datta-able/react/free/",
-  "license": "MIT",
+  "license": "MIT",  
+  "homepage":"https://npkohleradmin.netlify.app/",
   "dependencies": {
     "@ckeditor/ckeditor5-build-classic": "^42.0.2",
     "@ckeditor/ckeditor5-paragraph": "^42.0.2",

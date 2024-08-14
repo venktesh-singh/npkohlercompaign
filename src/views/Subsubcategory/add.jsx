@@ -1,22 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { Row, Col, Card, Button, Form } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
 import { ToastContainer, toast } from 'react-toastify';
-import { useNavigate, useLocation } from 'react-router-dom';
 import 'react-toastify/dist/ReactToastify.css';
 import { BASE_URL } from '../../config/apiurl';
 
-const SubCategoryUpdate = () => {
-    const location = useLocation();
-    const id = location?.state?.cat?.id || '';
-    const [updateSubcategory, setUpdateSubcategory] = useState({
-        category: '', 
+const AddSubSubcategory = () => {
+    const [addSubsubcategory, setAddSubsubcategory] = useState({
+        cat_name: '',
         subcat_name: '',
-        meta_title: '',
-        meta_desc: ''
+        subsubcat_name: '',
+        metaTitle: '',
+        metaDescription: ''
     });
     const [error, setError] = useState(null);
     const [categories, setCategories] = useState([]);
+    const [subcategories, setSubcategories] = useState([]);
     const navigate = useNavigate();
 
     const handleBackButtonClick = () => {
@@ -25,15 +25,7 @@ const SubCategoryUpdate = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setUpdateSubcategory((prevSubcategory) => ({ ...prevSubcategory, [name]: value }));
-    };
-
-    const handleCategoryChange = (e) => {
-        const categoryId = e.target.value;
-        setUpdateSubcategory((prevSubcategory) => ({
-            ...prevSubcategory,
-            category: categoryId
-        }));
+        setAddSubsubcategory((prevSubsubcategory) => ({ ...prevSubsubcategory, [name]: value }));
     };
 
     useEffect(() => {
@@ -44,65 +36,86 @@ const SubCategoryUpdate = () => {
                     throw new Error('Failed to fetch categories');
                 }
                 const data = await response.json();
-                setCategories(data.category || []);
-            } catch (error) {
-                setError(error.message);
+                setCategories(data.category);
+            } catch (err) {
+                setError(err.message);
             }
         };
         fetchCategories();
     }, []);
 
-    useEffect(() => {
-        if (location?.state?.cat) {
-            const { category = '', subcat_name = '', meta_title = '', meta_desc = '' } = location.state.cat;
-            setUpdateSubcategory({
-                category,  // This should be a category ID string
-                subcat_name,
-                meta_title,
-                meta_desc
-            });
-        }
-    }, [location.state.cat]);
-    console.log("Subcategory check", updateSubcategory);
     
+    const fetchSubcategories = async (categoryId) => {
+        try {
+            const response = await fetch(`${BASE_URL}/subcategories/category/${categoryId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Error details:', errorData);
+                throw new Error('Failed to fetch subcategories');
+            }
+            const data = await response.json();
+            setSubcategories(data.subcategories);
+        } catch (error) {
+            console.error("An error occurred while fetching subcategories:", error);
+            setError(error.message);
+        }
+    };
+    
+
+    const handleCategoryChange = (e) => {
+        const categoryId = e.target.value;
+        console.log('Selected Category ID:', categoryId); // Debugging log
+        setAddSubsubcategory((prevSubsubcategory) => ({ ...prevSubsubcategory, cat_name: categoryId }));
+        fetchSubcategories(categoryId);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
-        if (!updateSubcategory.category || !updateSubcategory.subcat_name) {
-            toast.error('Category and Subcategory Name are required');
+    
+        // Debugging log to check what is being submitted
+        console.log('Submitting Data:', addSubsubcategory);
+    
+        if (!addSubsubcategory.cat_name || !addSubsubcategory.subcat_name || !addSubsubcategory.subsubcat_name) {
+            toast.error('Category, Subcategory, and Subsubcategory Names are required');
             return;
         }
-
+    
         try {
-            const response = await fetch(`${BASE_URL}/subcategories/edit/${id}`, {
-                method: 'PUT',
+            const response = await fetch(`${BASE_URL}/subsubcategories/add`, {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(updateSubcategory),
+                body: JSON.stringify({
+                    category: addSubsubcategory.cat_name,
+                    subcategory: addSubsubcategory.subcat_name,
+                    subsubcat_name: addSubsubcategory.subsubcat_name,
+                    meta_title: addSubsubcategory.metaTitle,
+                    meta_desc: addSubsubcategory.metaDescription,
+                }),
             });
-
+    
             if (!response.ok) {
                 const errorText = await response.text();
-                throw new Error(errorText || 'Failed to update subcategory');
+                throw new Error(errorText || 'Failed to add subsubcategory');
             }
-
-            const data = await response.json();
-            console.log('Subcategory updated successfully:', data);
-            toast.success('Subcategory updated successfully!', {
+    
+            toast.success('Subsubcategory added successfully!', {
                 position: "top-center",
                 autoClose: 2000,
                 hideProgressBar: false,
                 closeOnClick: true,
                 pauseOnHover: true,
                 draggable: true,
-                progress: undefined,
                 theme: "dark",
             });
             navigate(-1);
         } catch (error) {
-            console.error('Error updating subcategory:', error.message);
-            setError(error.message);
             toast.error(`Error: ${error.message}`, {
                 position: "top-center",
                 autoClose: 2000,
@@ -110,7 +123,6 @@ const SubCategoryUpdate = () => {
                 closeOnClick: true,
                 pauseOnHover: true,
                 draggable: true,
-                progress: undefined,
                 theme: "dark",
             });
         }
@@ -123,31 +135,16 @@ const SubCategoryUpdate = () => {
                 .mb-row {
                     margin-bottom: 1rem;
                 }
-                .form-control option.selected {
-                    font-weight: bold;
-                    background-color: #d8d8d8;
-                }
                 `}
             </style>
             <Row className="justify-content-md-center mt-4">
-                <ToastContainer
-                    position="top-center"
-                    autoClose={2000}
-                    hideProgressBar={false}
-                    newestOnTop={false}
-                    closeOnClick
-                    rtl={false}
-                    pauseOnFocusLoss
-                    draggable
-                    pauseOnHover
-                    theme="dark"
-                />
+                <ToastContainer />
                 <Col md={12}>
                     <Card className="user-list">
                         <Card.Header>
                             <Row className="align-items-center mb-row">
                                 <Col>
-                                    <Card.Title as="h5">Update Subcategory</Card.Title>
+                                    <Card.Title as="h5">Add Subsubcategory</Card.Title>
                                 </Col>
                                 <Col md="auto">
                                     <Button
@@ -166,34 +163,61 @@ const SubCategoryUpdate = () => {
                                 <Row className="mb-row">
                                     <Col md={6}>
                                         <Form.Group controlId="formCategoryName">
-                                            <Form.Label>Select Category</Form.Label>
+                                            <Form.Label>Category</Form.Label>
                                             <Form.Select
-                                                name="category"
-                                                value={updateSubcategory.category} 
+                                                name="cat_name"
+                                                value={addSubsubcategory.cat_name}
                                                 onChange={handleCategoryChange}
                                             >
                                                 <option value="">Select Category</option>
-                                                {categories.map((cat) => (
-                                                    <option
-                                                        key={cat._id}
-                                                        value={cat._id}
-                                                        className={updateSubcategory.category._id === cat._id ? 'selected' : ''}
-                                                    >
-                                                        {cat.cat_name}
+                                                {categories.map((category) => (
+                                                    <option key={category._id} value={category._id}>
+                                                        {category.cat_name}
                                                     </option>
                                                 ))}
                                             </Form.Select>
                                         </Form.Group>
-
                                     </Col>
+
                                     <Col md={6}>
                                         <Form.Group controlId="formSubcategoryName">
-                                            <Form.Label>Subcategory Name</Form.Label>
+                                            <Form.Label>Subcategory</Form.Label>
+                                            <Form.Select
+                                                name="subcat_name"
+                                                value={addSubsubcategory.subcat_name}
+                                                onChange={handleChange}
+                                            >
+                                                <option value="">Select Subcategory</option>
+                                                {subcategories.map((subcategory) => (
+                                                    <option key={subcategory._id} value={subcategory._id}>
+                                                        {subcategory.subcat_name}
+                                                    </option>
+                                                ))}
+                                            </Form.Select>
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                                <Row className="mb-row">
+                                    <Col md={6}>
+                                        <Form.Group controlId="formSubsubcategoryName">
+                                            <Form.Label>Subsubcategory Name</Form.Label>
                                             <Form.Control
                                                 type="text"
-                                                placeholder="Enter Subcategory Name"
-                                                name="subcat_name"
-                                                value={updateSubcategory.subcat_name}
+                                                placeholder="Enter Subsubcategory Name"
+                                                name="subsubcat_name"
+                                                value={addSubsubcategory.subsubcat_name}
+                                                onChange={handleChange}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={6}>
+                                        <Form.Group controlId="formMetaTitle">
+                                            <Form.Label>Meta Title</Form.Label>
+                                            <Form.Control
+                                                type="text"
+                                                placeholder="Enter Meta Title"
+                                                name="metaTitle"
+                                                value={addSubsubcategory.metaTitle}
                                                 onChange={handleChange}
                                             />
                                         </Form.Group>
@@ -201,32 +225,20 @@ const SubCategoryUpdate = () => {
                                 </Row>
                                 <Row className="mb-row">
                                     <Col md={6}>
-                                        <Form.Group controlId="formMetaTitle">
-                                            <Form.Label>Meta Title</Form.Label>
-                                            <Form.Control
-                                                type="text"
-                                                placeholder="Enter Meta Title"
-                                                name="meta_title"
-                                                value={updateSubcategory.meta_title}
-                                                onChange={handleChange}
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={6}>
                                         <Form.Group controlId="formMetaDescription">
                                             <Form.Label>Meta Description</Form.Label>
                                             <Form.Control
                                                 as="textarea"
                                                 rows={3}
                                                 placeholder="Enter Meta Description"
-                                                name="meta_desc"
-                                                value={updateSubcategory.meta_desc}
+                                                name="metaDescription"
+                                                value={addSubsubcategory.metaDescription}
                                                 onChange={handleChange}
                                             />
                                         </Form.Group>
                                     </Col>
                                 </Row>
-                                <Button type="submit" className="mt-3">Update Subcategory</Button>
+                                <Button type="submit" className="mt-3">Add Subsubcategory</Button>
                             </Form>
                         </Card.Body>
                     </Card>
@@ -236,4 +248,4 @@ const SubCategoryUpdate = () => {
     );
 };
 
-export default SubCategoryUpdate;
+export default AddSubSubcategory;

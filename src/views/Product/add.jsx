@@ -17,10 +17,12 @@ const AddProduct = () => {
         long_desc: '',
         category: '',
         subcategory: '',
+        subsubcategory: '',
         attributes: [{ sku: '', single_img: null, price: '', sale_price: '', color_name: '', color_image: null, stock: '' }],
     });
     const [categories, setCategories] = useState([]);
     const [subcategories, setSubcategories] = useState([]);
+    const [subsubcategories, setSubsubcategories] = useState([]);  // Added subsubcategories state
     const [error, setError] = useState(null);
     const navigate = useNavigate();
     
@@ -73,7 +75,26 @@ const AddProduct = () => {
     
     const handleSubcategoryChange = (e) => {
         const subcategoryId = e.target.value;
-        setAddProduct((prevProduct) => ({ ...prevProduct, subcategory: subcategoryId }));
+        setAddProduct((prevProduct) => ({ ...prevProduct, subcategory: subcategoryId, subsubcategory:'' }));
+        fetchSubsubcategories(subcategoryId);
+    };
+
+    const fetchSubsubcategories = async (subcategoryId) => {
+        try {
+            const response = await fetch(`${BASE_URL}/subsubcategories/subcategory/${subcategoryId}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch subsubcategories');
+            }
+            const data = await response.json();
+            setSubsubcategories(data.subsubcategories);
+        } catch (error) {
+            setError(error.message);
+        }
+    };
+
+    const handleSubsubcategoryChange = (e) => {
+        const subsubcategoryId = e.target.value;
+        setAddProduct((prevProduct) => ({ ...prevProduct, subsubcategory: subsubcategoryId }));
     };
 
     const handleChange = (e) => {
@@ -110,7 +131,7 @@ const AddProduct = () => {
         setAddProduct((prevProduct) => {
             const { attributes } = prevProduct;
             const updatedAttributes = attributes.length > 1 ? attributes.slice(0,attributes.length-1) : attributes;
-            return{
+            return {
                 ...prevProduct,
                 attributes: updatedAttributes
             }
@@ -255,40 +276,17 @@ const AddProduct = () => {
                                     </Col>
                                 </Row>
                                 <Row className="mb-row">
-                                    <Col md={12}>
-                                        <Form.Group controlId="formLongDesc">
-                                            <Form.Label><b>Long Description</b></Form.Label>
-                                                <CKEditor
-                                                    editor={ClassicEditor}
-                                                    data={addProduct.long_desc || ''}
-                                                    onChange={(event, editor) => handleEditorChange(event, editor)}
-                                                    config={{
-                                                    toolbar: [
-                                                        'undo', 'redo', '|',
-                                                        'heading', '|', 'bold', 'italic', '|',
-                                                        'paragraph', '|',
-                                                        'link', 'insertTable', 'mediaEmbed', '|',
-                                                        'bulletedList', 'numberedList', 'indent', 'outdent'
-                                                    ],
-                                                    }}
-                                                    onReady={(editor) => {
-                                                    console.log('Editor is ready to use!', editor);
-                                                    }}
-                                                />
-                                        </Form.Group>
-                                    </Col>
-                                </Row>
-                                <Row className="mb-row">
                                     <Col md={4}>
                                         <Form.Group controlId="formCategory">
                                             <Form.Label><b>Category</b></Form.Label>
                                             <Form.Select
+                                                as="select"
                                                 name="category"
                                                 value={addProduct.category || ''}
                                                 onChange={handleCategoryChange}
                                             >
-                                                <option value="">Please Select Category</option>
-                                                {categories?.map((category) => (
+                                                <option value="">Select Category</option>
+                                                {categories.map((category) => (
                                                     <option key={category._id} value={category._id}>
                                                         {category.cat_name}
                                                     </option>
@@ -297,14 +295,15 @@ const AddProduct = () => {
                                         </Form.Group>
                                     </Col>
                                     <Col md={4}>
-                                        <Form.Group controlId="formSubCategory">
-                                            <Form.Label><b>Sucategory</b></Form.Label>
+                                        <Form.Group controlId="formSubcategory">
+                                            <Form.Label><b>Subcategory</b></Form.Label>
                                             <Form.Select
+                                                as="select"
                                                 name="subcategory"
                                                 value={addProduct.subcategory || ''}
                                                 onChange={handleSubcategoryChange}
                                             >
-                                                <option value="">Please Select Sub Category</option>
+                                                <option value="">Select Subcategory</option>
                                                 {subcategories.map((subcategory) => (
                                                     <option key={subcategory._id} value={subcategory._id}>
                                                         {subcategory.subcat_name}
@@ -313,109 +312,144 @@ const AddProduct = () => {
                                             </Form.Select>
                                         </Form.Group>
                                     </Col>
+                                    <Col md={4}>
+                                        <Form.Group controlId="formSubsubcategory">
+                                            <Form.Label><b>Subsubcategory</b></Form.Label>
+                                            <Form.Select
+                                                as="select"
+                                                name="subsubcategory"
+                                                value={addProduct.subsubcategory || ''}
+                                                onChange={handleSubsubcategoryChange}
+                                            >
+                                                <option value="">Select Subsubcategory</option>
+                                                {subsubcategories.map((subsubcategory) => (
+                                                    <option key={subsubcategory._id} value={subsubcategory._id}>
+                                                        {subsubcategory.subsubcat_name}
+                                                    </option>
+                                                ))}
+                                            </Form.Select>
+                                        </Form.Group>
+                                    </Col>
                                 </Row>
-
-                                <Card className="mb-4">
+                                <Row className="mb-row">
+                                    <Col md={12}>
+                                        <Form.Group controlId="formLongDesc">
+                                            <Form.Label><b>Long Description</b></Form.Label>
+                                            <CKEditor
+                                                editor={ClassicEditor}
+                                                data={addProduct.long_desc || ''}
+                                                onChange={handleEditorChange}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                                <Row className="mb-row">
                                     <Card.Header>
-                                        <h5>Product Attributes</h5>
+                                        <Card.Title as="h5">Product Attributes</Card.Title>
                                     </Card.Header>
-                                    <Card.Body>
-                                        {addProduct.attributes.map((attribute, index) => (
-                                            <div key={index} className="mb-5">
-                                                <Row className="mb-2">
-                                                    <Col md={2}>
-                                                        <Form.Group controlId={`formSku${index}`}>
-                                                            <Form.Label><b>SKU</b></Form.Label>
-                                                            <Form.Control
-                                                                placeholder="Please Enter SKU"
-                                                                type="text"
-                                                                name="sku"
-                                                                value={attribute.sku}
-                                                                onChange={(e) => handleAttributeChange(index, e)}
-                                                            />
-                                                        </Form.Group>
-                                                    </Col>
-                                                    <Col md={2}>
-                                                        <Form.Group controlId={`formPrice${index}`}>
-                                                            <Form.Label><b>Price</b></Form.Label>
-                                                            <Form.Control
-                                                                placeholder="Please Enter price"
-                                                                type="number"
-                                                                name="price"
-                                                                value={attribute.price}
-                                                                onChange={(e) => handleAttributeChange(index, e)}
-                                                            />
-                                                        </Form.Group>
-                                                    </Col>
-                                                    <Col md={2}>
-                                                        <Form.Group controlId={`formSalePrice${index}`}>
-                                                            <Form.Label><b>Sale Price</b></Form.Label>
-                                                            <Form.Control
-                                                                placeholder="Please Enter Sale price"
-                                                                type="number"
-                                                                name="sale_price"
-                                                                value={attribute.sale_price}
-                                                                onChange={(e) => handleAttributeChange(index, e)}
-                                                            />
-                                                        </Form.Group>
-                                                    </Col>
-                                                    <Col md={2}>
-                                                        <Form.Group controlId={`formColorName${index}`}>
-                                                            <Form.Label><b>Color Name</b></Form.Label>
-                                                            <Form.Control
-                                                                placeholder="Please Enter color name"
-                                                                type="text"
-                                                                name="color_name"
-                                                                value={attribute.color_name}
-                                                                onChange={(e) => handleAttributeChange(index, e)}
-                                                            />
-                                                        </Form.Group>
-                                                    </Col>
-                                                    <Col md={2}>
-                                                        <Form.Group controlId={`formStock${index}`}>
-                                                            <Form.Label><b>Stock</b></Form.Label>
-                                                            <Form.Control
-                                                                placeholder="Please Enter Stock"
-                                                                type="number"
-                                                                name="stock"
-                                                                value={attribute.stock}
-                                                                onChange={(e) => handleAttributeChange(index, e)}
-                                                            />
-                                                        </Form.Group>
-                                                    </Col>
-                                                </Row>
-                                                <Row>
-                                                    <Col md={2}>
-                                                        <Form.Group controlId={`formSingleImg${index}`}>
-                                                            <Form.Label><b>Single Image</b></Form.Label>
-                                                            <Form.Control
-                                                                placeholder="Please Enter single image"
-                                                                type="file"
-                                                                name="single_img"
-                                                                onChange={(e) => handleImageSelect(index, 'single_img', e)}
-                                                            />
-                                                        </Form.Group>
-                                                    </Col>
-                                                    <Col md={2}>
-                                                        <Form.Group controlId={`formColorImage${index}`}>
-                                                            <Form.Label><b>Color Image</b></Form.Label>
-                                                            <Form.Control
-                                                                placeholder="Please Enter Color image"
-                                                                type="file"
-                                                                name="color_image"
-                                                                onChange={(e) => handleImageSelect(index, 'color_image', e)}
-                                                            />
-                                                        </Form.Group>
-                                                    </Col>
-                                                </Row>
-                                            </div>
-                                        ))}
-                                        <Button variant="primary" onClick={addAttribute}>Add More Attributes</Button> 
-                                        <Button variant="danger" onClick={removeAttribute}>Remove Attributes</Button>
-                                    </Card.Body>
-                                </Card>
-
-                                <Button type="submit" className="mt-3">Submit</Button>
+                                    <Col md={12}>
+                                        <Card className="mb-3">
+                                            <Card.Body>
+                                                {addProduct.attributes.map((attribute, index) => (
+                                                    <div key={index}>
+                                                        <Row className="mb-3">
+                                                            <Col md={3}>
+                                                                <Form.Group controlId={`formSKU${index}`}>
+                                                                    <Form.Label>SKU</Form.Label>
+                                                                    <Form.Control
+                                                                        type="text"
+                                                                        placeholder="Enter SKU"
+                                                                        name="sku"
+                                                                        value={attribute.sku}
+                                                                        onChange={(e) => handleAttributeChange(index, e)}
+                                                                    />
+                                                                </Form.Group>
+                                                            </Col>
+                                                            <Col md={3}>
+                                                                <Form.Group controlId={`formPrice${index}`}>
+                                                                    <Form.Label>Price</Form.Label>
+                                                                    <Form.Control
+                                                                        type="number"
+                                                                        placeholder="Enter Price"
+                                                                        name="price"
+                                                                        value={attribute.price}
+                                                                        onChange={(e) => handleAttributeChange(index, e)}
+                                                                    />
+                                                                </Form.Group>
+                                                            </Col>
+                                                            <Col md={3}>
+                                                                <Form.Group controlId={`formSalePrice${index}`}>
+                                                                    <Form.Label>Sale Price</Form.Label>
+                                                                    <Form.Control
+                                                                        type="number"
+                                                                        placeholder="Enter Sale Price"
+                                                                        name="sale_price"
+                                                                        value={attribute.sale_price}
+                                                                        onChange={(e) => handleAttributeChange(index, e)}
+                                                                    />
+                                                                </Form.Group>
+                                                            </Col>
+                                                            <Col md={3}>
+                                                                <Form.Group controlId={`formStock${index}`}>
+                                                                    <Form.Label>Stock</Form.Label>
+                                                                    <Form.Control
+                                                                        type="number"
+                                                                        placeholder="Enter Stock"
+                                                                        name="stock"
+                                                                        value={attribute.stock}
+                                                                        onChange={(e) => handleAttributeChange(index, e)}
+                                                                    />
+                                                                </Form.Group>
+                                                            </Col>
+                                                        </Row>
+                                                        <Row className="mb-3">
+                                                            <Col md={3}>
+                                                                <Form.Group controlId={`formSingleImg${index}`}>
+                                                                    <Form.Label>Single Image</Form.Label>
+                                                                    <Form.Control
+                                                                        type="file"
+                                                                        name="single_img"
+                                                                        accept="image/*"
+                                                                        onChange={(e) => handleImageSelect(index, 'single_img', e)}
+                                                                    />
+                                                                </Form.Group>
+                                                            </Col>
+                                                            <Col md={3}>
+                                                                <Form.Group controlId={`formColorName${index}`}>
+                                                                    <Form.Label>Color Name</Form.Label>
+                                                                    <Form.Control
+                                                                        type="text"
+                                                                        placeholder="Enter Color Name"
+                                                                        name="color_name"
+                                                                        value={attribute.color_name}
+                                                                        onChange={(e) => handleAttributeChange(index, e)}
+                                                                    />
+                                                                </Form.Group>
+                                                            </Col>
+                                                            <Col md={3}>
+                                                                <Form.Group controlId={`formColorImage${index}`}>
+                                                                    <Form.Label>Color Image</Form.Label>
+                                                                    <Form.Control
+                                                                        type="file"
+                                                                        name="color_image"
+                                                                        accept="image/*"
+                                                                        onChange={(e) => handleImageSelect(index, 'color_image', e)}
+                                                                    />
+                                                                </Form.Group>
+                                                            </Col>
+                                                        </Row>
+                                                    </div>
+                                                ))}
+                                                <Button variant="outline-primary" onClick={addAttribute}>Add Attribute</Button>
+                                                {' '}
+                                                <Button variant="outline-danger" onClick={removeAttribute}>Remove Last Attribute</Button>
+                                            </Card.Body>
+                                        </Card>
+                                    </Col>
+                                </Row>
+                                <Button variant="primary" type="submit">
+                                    Submit
+                                </Button>
                             </Form>
                         </Card.Body>
                     </Card>

@@ -11,7 +11,7 @@ import { BASE_URL } from '../../config/apiurl';
 
 const EditProduct = () => {
     const location = useLocation();
-    const id = location?.state?.prod?._id || '';
+    const prod = location?.state?.prod;  
     const [updateProduct, setUpdateProduct] = useState({
         product_title: '',
         product_subtitle: '',
@@ -19,88 +19,110 @@ const EditProduct = () => {
         long_desc: '',
         category: '',
         subcategory: '',
+        subsubcategory: '',
         attributes: [{ sku: '', single_img: null, price: '', sale_price: '', color_name: '', color_image: null, stock: '' }],
     });
     const [categories, setCategories] = useState([]);
     const [subcategories, setSubcategories] = useState([]);
+    const [subsubcategories, setSubsubcategories] = useState([]);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
-    
+
     const handleBackButtonClick = () => {
         navigate(-1);
     };
-    console.log("Update Product",updateProduct.subcategory._id);
+
+    useEffect(() => {
+        if (prod) {
+            setUpdateProduct({
+                product_title: prod.product_title,
+                product_subtitle: prod.product_subtitle,
+                short_desc: prod.short_desc,
+                long_desc: prod.long_desc,
+                category: prod.category?._id || '',
+                subcategory: prod.subcategory?._id || '',
+                subsubcategory: prod.subsubcategory?._id || '',
+                attributes: prod.attributes || [{ sku: '', single_img: null, price: '', sale_price: '', color_name: '', color_image: null, stock: '' }],
+            });
+
+            if (prod.category?._id) fetchSubcategories(prod.category?._id);
+            if (prod.subcategory?._id) fetchSubsubcategories(prod.subcategory?._id);
+        }
+    }, [prod]);
+
+    
     useEffect(() => {
         const fetchCategories = async () => {
             try {
                 const response = await fetch(`${BASE_URL}/categories/`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch categories');
-                }
+                if (!response.ok) throw new Error('Failed to fetch categories');
                 const data = await response.json();
                 setCategories(data.category);
+                
+                if (updateProduct.category) fetchSubcategories(updateProduct.category);
+                if (updateProduct.subcategory) fetchSubsubcategories(updateProduct.subcategory);
             } catch (err) {
                 setError(err.message);
             }
         };
+
         fetchCategories();
     }, []);
 
-    useEffect(() => {
-        if (location?.state?.prod) {
-            const {
-                product_title = '',
-                product_subtitle = '',
-                short_desc = '',
-                long_desc = '',
-                category = '',
-                subcategory = '',
-                attributes = [{ sku: '', single_img: null, price: '', sale_price: '', color_name: '', color_image: null, stock: '' }]
-            } = location.state.prod;
-    
-            setUpdateProduct({
-                product_title,
-                product_subtitle,
-                short_desc,
-                long_desc,
-                category,
-                subcategory,
-                attributes
-            });
-        }
-    }, [location.state.prod]);
-
-    const handleCategoryChange = (e) => {
+   
+    const handleCategoryChange = async (e) => {
         const categoryId = e.target.value;
-        setUpdateProduct((prevProduct) => ({ ...prevProduct, category: categoryId, subcategory: '' }));
-        fetchSubcategories(categoryId);
+        setUpdateProduct(prevProduct => ({
+            ...prevProduct,
+            category: categoryId,
+            subcategory: '',
+            subsubcategory: ''
+        }));
+        await fetchSubcategories(categoryId);
     };
 
+   
     const fetchSubcategories = async (categoryId) => {
         try {
-            const response = await fetch(`${BASE_URL}/subcategories/category/${categoryId}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error('Error details:', errorData);
-                throw new Error('Failed to fetch subcategories');
-            }
+            const response = await fetch(`${BASE_URL}/subcategories/category/${categoryId}`);
+            if (!response.ok) throw new Error('Failed to fetch subcategories');
             const data = await response.json();
             setSubcategories(data.subcategories);
         } catch (error) {
-            console.error("An error occurred while fetching subcategories:", error);
             setError(error.message);
         }
     };
-    
-    const handleSubcategoryChange = (e) => {
+
+   
+    const handleSubcategoryChange = async (e) => {
         const subcategoryId = e.target.value;
-        setUpdateProduct((prevProduct) => ({ ...prevProduct, subcategory: subcategoryId }));
+        setUpdateProduct(prevProduct => ({
+            ...prevProduct,
+            subcategory: subcategoryId,
+            subsubcategory: ''
+        }));
+        await fetchSubsubcategories(subcategoryId);
     };
+   
+    const fetchSubsubcategories = async (subcategoryId) => {
+        try {
+            const response = await fetch(`${BASE_URL}/subsubcategories/subcategory/${subcategoryId}`);
+            if (!response.ok) throw new Error('Failed to fetch subsubcategories');
+            const data = await response.json();
+            setSubsubcategories(data.subsubcategories);
+        } catch (error) {
+            setError(error.message);
+        }
+    };
+
+    const handleSubsubcategoryChange = (e) => {
+        const subsubcategoryId = e.target.value;
+        setUpdateProduct(prevProduct => ({
+            ...prevProduct,
+            subsubcategory: subsubcategoryId
+        }));
+    };
+    
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -167,25 +189,21 @@ const EditProduct = () => {
                 }
             });
 
-            const response = await fetch(`${BASE_URL}/products/edit/${id}`, {
+            const response = await fetch(`${BASE_URL}/products/edit/${prod?._id}`, {
                 method: 'PUT',
                 body: formData
             });
 
-            if (!response.ok) {
-                throw new Error('Failed to update product');
-            }
+            if (!response.ok) throw new Error('Failed to update product');
 
             const data = await response.json();
-            console.log('Product updated successfully:', data);
-            toast.success('Product updated successfully!', {
+            toast.success(data,'Product updated successfully!', {
                 position: "top-center",
                 autoClose: 2000,
                 hideProgressBar: false,
                 closeOnClick: true,
                 pauseOnHover: true,
                 draggable: true,
-                progress: undefined,
                 theme: "dark",
             });
             navigate(-1);
@@ -198,7 +216,6 @@ const EditProduct = () => {
                 closeOnClick: true,
                 pauseOnHover: true,
                 draggable: true,
-                progress: undefined,
                 theme: "dark",
             });
         }
@@ -320,18 +337,19 @@ const EditProduct = () => {
                                         </Form.Group>
                                     </Col>
                                 </Row>
+
                                 <Row className="mb-row">
                                     <Col md={4}>
                                         <Form.Group controlId="formCategory">
-                                            <Form.Label><b>Category</b></Form.Label>
+                                            <Form.Label><b>Please Select Category</b></Form.Label>
                                             <Form.Select
                                                 name="category"
-                                                value={updateProduct.category || ''}
+                                                value={updateProduct.category}
                                                 onChange={handleCategoryChange}
                                             >
                                                 <option value="">Please Select Category</option>
-                                                {categories?.map((category) => (
-                                                    <option key={category._id} value={category._id} className={ updateProduct.category._id === category._id ? 'selected' : '' }>
+                                                {categories.map((category) => (
+                                                    <option key={category?._id} value={category?._id}>
                                                         {category.cat_name}
                                                     </option>
                                                 ))}
@@ -340,16 +358,33 @@ const EditProduct = () => {
                                     </Col>
                                     <Col md={4}>
                                         <Form.Group controlId="formSubCategory">
-                                            <Form.Label><b>Subcategory</b></Form.Label>
+                                            <Form.Label><b>Please Select Subcategory</b></Form.Label>
                                             <Form.Select
                                                 name="subcategory"
-                                                value={updateProduct.subcategory || ''}
+                                                value={updateProduct.subcategory}
                                                 onChange={handleSubcategoryChange}
                                             >
                                                 <option value="">Please Select Subcategory</option>
                                                 {subcategories.map((subcategory) => (
-                                                    <option key={subcategory._id} value={subcategory._id} className={ updateProduct.subcategory._id === subcategory._id ? 'selected' : '' }>
+                                                    <option key={subcategory?._id} value={subcategory?._id}>
                                                         {subcategory.subcat_name}
+                                                    </option>
+                                                ))}
+                                            </Form.Select>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={4}>
+                                        <Form.Group controlId="formSubsubcategory">
+                                            <Form.Label><b>Please Select Subsubcategory</b></Form.Label>
+                                            <Form.Select
+                                                name="subsubcategory"
+                                                value={updateProduct.subsubcategory}
+                                                onChange={handleSubsubcategoryChange}
+                                            >
+                                                <option value="">Please Select Subsubcategory</option>
+                                                {subsubcategories.map((subsubcategory) => (
+                                                    <option key={subsubcategory?._id} value={subsubcategory?._id}>
+                                                        {subsubcategory.subsubcat_name}
                                                     </option>
                                                 ))}
                                             </Form.Select>

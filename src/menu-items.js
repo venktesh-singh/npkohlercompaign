@@ -114,6 +114,21 @@ const menuItems = {
       ]
     },
     {
+      type: 'group',
+      icon: 'icon-group',
+      class: 'remove-secp',
+      children: [
+        {
+          id: 'forms',
+          class: 'remove-secp',
+          title: 'Subsubcategory List',
+          type: 'item',
+          icon: 'feather icon-file-text',
+          url: '/subsubcategory/list'
+        }
+      ]
+    },
+    {
       //id: 'ui-forms',
       //title: 'Eshop Pages',
       type: 'group',
@@ -174,6 +189,9 @@ const urlsToRemove = [
   '/subcategory/detail',
   '/subcategory/add',
   '/subcategory/edit/:id',
+  '/subsubcategory/detail',
+  '/subsubcategory/add',
+  '/subsubcategory/edit/:id',
   '/product/product-detail',
   '/product/add',
   '/product/edit/:id',

@@ -4,7 +4,6 @@ import { FiEye, FiEdit, FiTrash2, FiPlus } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import moment from 'moment';
 import TablePagination from '@mui/material/TablePagination';
-//import avatar1 from '../../assets/images/user/avatar-1.jpg';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import asiamama from '../../image/logo.png'
@@ -16,7 +15,7 @@ function ProductList() {
     const [product, setProduct] = useState([]);
     const [error, setError] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
-     
+
     const fetchData = async () => {
         try {
             const response = await fetch(`${BASE_URL}/products/`);
@@ -76,12 +75,16 @@ function ProductList() {
     };
 
     const filteredProducts = product.filter(prod =>
-        prod?.product_title?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        prod?.product_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         prod?.category?.cat_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         prod?.subcategory?.subcat_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         prod?.attributes.map(att => att.sku).join(", ").toLowerCase().includes(searchTerm.toLowerCase())
     );
-    //console.log("Product List Get SubCate:", product);
+
+    const checkCat = product.map((prods) =>  `${prods?.category?._id} => Category, ${prods?.subcategory?._id}
+     => subcategory, ${prods?.subsubcategory?._id} => subsubcategory, ${prods?._id} ${prods?.product_title} => Product ID`);    
+    
+    console.log("Check Category Subcategory", checkCat);
     return (
         <React.Fragment>
             <ToastContainer
@@ -133,6 +136,7 @@ function ProductList() {
                                     <th>Name</th>
                                     <th>Category</th>
                                     <th>Sub Category</th>
+                                    <th>Sub Subcategory</th>
                                     <th>SKU</th>
                                     <th>Date</th>
                                     <th>Action</th>
@@ -148,7 +152,6 @@ function ProductList() {
                                                      <img className="rounded-circle" style={{ width: '40px' }} src={prod.product_img} alt="activity-user" />
                                                      :  <img className="rounded-circle" style={{ width: '40px' }} src={asiamama} alt="activity-user" />  
                                                 }
-                                                
                                             </td>
                                             <td>
                                                 <h6 className="mb-1">{prod.product_title}</h6>
@@ -160,6 +163,9 @@ function ProductList() {
                                                 <span className="pie_1">{prod?.subcategory?.subcat_name || 'No Subcategory'}</span>
                                             </td>
                                             <td>
+                                                <span className="pie_1">{prod?.subsubcategory?.subsubcat_name || 'No Subsubcategory'}</span>
+                                            </td>
+                                            <td>
                                                 <span className="pie_1">{ prod?.attributes.map(att => att.sku).join(", ") }</span>
                                             </td>
                                             <td>
@@ -169,7 +175,15 @@ function ProductList() {
                                                 <Link to={`/product/detail`} state={{ prod }} style={{ padding: 10 }}>
                                                     <FiEye size='25' className="f-30 text-c-green" />
                                                 </Link>
-                                                <Link style={{ padding: 2 }} state={{ prod }} to={`/product/edit/${prod._id}`}>
+                                                <Link
+                                                        to={`/product/edit/${prod._id}`}
+                                                        state={{
+                                                            prod,
+                                                            cat_name: prod?.category?._id,
+                                                            subcat_name: prod?.subcategory?._id,
+                                                            subsubcat_name: prod?.subsubcategory?._id,
+                                                        }}
+                                                >
                                                     <FiEdit size='25' className="f-30 text-c-blue" />
                                                 </Link>
                                                 <Link
