@@ -1,165 +1,276 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Row, Col, Card, Button, Form, Image } from 'react-bootstrap';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { CKEditor } from '@ckeditor/ckeditor5-react';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import 'ckeditor5/ckeditor5.css';
+import { BASE_URL } from '../../config/apiurl';
+import JoditEditor from 'jodit-react';
+import DOMPurify from 'dompurify';
 
-function ProductUpdate() {
+const EditProduct = () => {
     const location = useLocation();
-    const productFromLocation = location.state?.prod;
-    const id = productFromLocation?._id;
+    const prod = location?.state?.prod;  
     const [updateProduct, setUpdateProduct] = useState({
-        product_gallery: [],  
-        ...productFromLocation 
+        product_title: '',
+        product_subtitle: '',
+        short_desc: '',
+        long_desc: '',
+        category: '',
+        subcategory: '',
+        subsubcategory: '',
+        features: '',
+        specs: '',
+        installation_service: '',
+        additional_info: '',
+        returns_warranty: '',
+        spend_save: '',
+        need_help: '',
+        free_shipping: '',
+        attributes: [{ sku: '', sku_subtitle: '', single_img: null, price: '', sale_price: '', color_name: '', color_image: null, stock: '' }],
     });
     const [categories, setCategories] = useState([]);
     const [subcategories, setSubcategories] = useState([]);
+    const [subsubcategories, setSubsubcategories] = useState([]);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
-
+    //console.log("Check Update",prod)
+    console.log("Check Update Product",updateProduct)
     const handleBackButtonClick = () => {
         navigate(-1);
     };
+
+    useEffect(() => {
+        console.log('Product from location:', prod); // Debugging line
+    
+        if (prod) {
+            setUpdateProduct({
+                product_title: prod.product_title || '',
+                product_subtitle: prod.product_subtitle || '',
+                short_desc: prod.short_desc || '',
+                long_desc: prod.long_desc || '',
+                category: prod.category?._id || '',
+                subcategory: prod.subcategory?._id || '',
+                subsubcategory: prod.subsubcategory?._id || '',
+                features: prod.features || '',
+                specs: prod.specs || '',
+                installation_service: prod.installation_service || '',
+                additional_info: prod.additional_info || '',
+                returns_warranty: prod.returns_warranty || '',
+                spend_save: prod.spend_save || '',
+                need_help: prod.need_help || '',
+                free_shipping: prod.free_shipping || '',
+                attributes: prod.attributes || [{ sku: '', sku_subtitle: '', single_img: null, price: '', sale_price: '', color_name: '', color_image: null, stock: '' }],
+            });
+        }
+    }, [prod]);
+    
+    // In handleEditor2Change
+    const handleEditor2Change = (field) => (content) => {
+        console.log('Editor content:', content); // Debugging line
+        setUpdateProduct((prevProduct) => ({
+            ...prevProduct,
+            [field]: content
+        }));
+    };
+
     
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const response = await fetch('http://localhost:4000/api/v1/categories/');
-                if (!response.ok) {
-                    throw new Error('Failed to fetch categories');
-                }
+                const response = await fetch(`${BASE_URL}/categories/`);
+                if (!response.ok) throw new Error('Failed to fetch categories');
                 const data = await response.json();
-                setCategories(data);
+                setCategories(data.category);
+                
+                if (updateProduct.category) fetchSubcategories(updateProduct.category);
+                if (updateProduct.subcategory) fetchSubsubcategories(updateProduct.subcategory);
             } catch (err) {
                 setError(err.message);
             }
         };
+
         fetchCategories();
     }, []);
 
-    const fetchSubcategories = async (categoryID) => {
-        try{
-            const response = await fetch(`http://localhost:4000/api/v1/subcategories/category/${categoryID}`);
-            if(!response.ok){
-                throw new Error('Failed to fetch Sub Categories');
-            }
+   
+    const handleCategoryChange = async (e) => {
+        const categoryId = e.target.value;
+        setUpdateProduct(prevProduct => ({
+            ...prevProduct,
+            category: categoryId,
+            subcategory: '',
+            subsubcategory: ''
+        }));
+        await fetchSubcategories(categoryId);
+    };
+
+   
+    const fetchSubcategories = async (categoryId) => {
+        try {
+            const response = await fetch(`${BASE_URL}/subcategories/category/${categoryId}`);
+            if (!response.ok) throw new Error('Failed to fetch subcategories');
             const data = await response.json();
-            setSubcategories(data);
+            setSubcategories(data.subcategories);
         } catch (error) {
-            console.error("An error occurred while fetching subcategories:", error);
+            setError(error.message);
         }
-    }
-
-    const handleCategoryChange = (e) => {
-        const categoryID = e.target.value;
-        setUpdateProduct((prevProduct) => ({
-            ...prevProduct,
-            category: categoryID,
-            subcategory: '' // Reset subcategory when category changes
-        }));
-        fetchSubcategories(categoryID);
     };
 
-    const handleSubcategoryChange = (e) => {
+   
+    const handleSubcategoryChange = async (e) => {
         const subcategoryId = e.target.value;
-        setUpdateProduct((prevProduct) => ({ ...prevProduct, subcategory: subcategoryId }));
+        setUpdateProduct(prevProduct => ({
+            ...prevProduct,
+            subcategory: subcategoryId,
+            subsubcategory: ''
+        }));
+        await fetchSubsubcategories(subcategoryId);
+    };
+   
+    const fetchSubsubcategories = async (subcategoryId) => {
+        try {
+            const response = await fetch(`${BASE_URL}/subsubcategories/subcategory/${subcategoryId}`);
+            if (!response.ok) throw new Error('Failed to fetch subsubcategories');
+            const data = await response.json();
+            setSubsubcategories(data.subsubcategories);
+        } catch (error) {
+            setError(error.message);
+        }
     };
 
-    const handleImageSelect = (e) => {
-        const file = e.target.files[0];
-        console.log("Selected file:", file);
-        setUpdateProduct((prevProduct) => ({
+    const handleSubsubcategoryChange = (e) => {
+        const subsubcategoryId = e.target.value;
+        setUpdateProduct(prevProduct => ({
             ...prevProduct,
-            product_img: file
+            subsubcategory: subsubcategoryId
         }));
     };
-
-    const handleMultipleImageUpload = (e) => {
-        const files = Array.from(e.target.files);
-        console.log("Slect Multiple Files:",files); 
-        setUpdateProduct((prevProduct) => ({
-            ...prevProduct,
-            product_gallery: files
-        }));
-    }
-
+    
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setUpdateProduct((prevProduct) => ({ ...prevProduct, [name]: value }));
     };
 
+    const handleAttributeChange = (index, e) => {
+        const { name, value } = e.target;
+        setUpdateProduct((prevProduct) => {
+            const attributes = [...prevProduct.attributes];
+            attributes[index] = { ...attributes[index], [name]: value };
+            return { ...prevProduct, attributes };
+        });
+    };
+
+    const handleImageSelect = (index, field, e) => {
+        const file = e.target.files[0];
+        setUpdateProduct((prevProduct) => {
+            const attributes = [...prevProduct.attributes];
+            attributes[index] = { ...attributes[index], [field]: file };
+            return { ...prevProduct, attributes };
+        });
+    };
+
+    const addAttribute = () => {
+        setUpdateProduct((prevProduct) => ({
+            ...prevProduct,
+            attributes: [...prevProduct.attributes, { sku: '', sku_subtitle: '', single_img: null, price: '', sale_price: '', color_name: '', color_image: null, stock: '' }]
+        }));
+    };
+
+    const removeAttribute = () => {
+        setUpdateProduct((prevProduct) => {
+            const { attributes } = prevProduct;
+            const updatedAttributes = attributes.length > 1 ? attributes.slice(0, attributes.length - 1) : attributes;
+            return {
+                ...prevProduct,
+                attributes: updatedAttributes
+            };
+        });
+    };
+
+    const handleEditorChange = (event, editor) => {
+        const data = editor.getData();
+        setUpdateProduct((prevProduct) => ({
+            ...prevProduct,
+            long_desc: data,
+        }));
+    };
+
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        console.log('Submitting:', updateProduct);
         try {
             const formData = new FormData();
-    
-            // Append product_gallery files
-            updateProduct.product_gallery.forEach(file => {
-                formData.append('product_gallery', file);
-            });
-    
-            // Append product_img if it exists
-            if (updateProduct.product_img) {
-                formData.append('product_img', updateProduct.product_img);
-            }
-    
-            // Append other fields
-            Object.keys(updateProduct).forEach(key => {
-                if (key !== 'product_gallery' && key !== 'product_img') {
+            Object.keys(updateProduct).forEach((key) => {
+                if (key === 'attributes') {
+                    updateProduct[key].forEach((attr, index) => {
+                        Object.keys(attr).forEach((attrKey) => {
+                            formData.append(`attributes[${index}][${attrKey}]`, attr[attrKey]);
+                        });
+                    });
+                } else {
                     formData.append(key, updateProduct[key]);
                 }
             });
-    
-            const response = await fetch(`http://localhost:4000/api/v1/products/edit/${id}`, {
+
+            const response = await fetch(`${BASE_URL}/products/edit/${prod?._id}`, {
                 method: 'PUT',
-                body: formData,
+                body: formData
             });
-    
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to update product');
-            }
-    
-            const data = await response.json();
-            console.log('Product updated successfully:', data);
-            toast.success('Product updated successfully!', {
-                position: "top-center",
-                autoClose: 3000, // Adjusted to 3000 milliseconds (3 seconds)
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-                theme: "dark",
-            });
-            navigate(-1);
-        } catch (error) {
-            console.error('Error updating product:', error.message);
-            toast.error('Error updating product: ' + error.message, {
+
+            if (!response.ok) throw new Error('Failed to update product');
+
+            const data = await response.json(); 
+            toast.success(data,'Product updated successfully!', {
                 position: "top-center",
                 autoClose: 2000,
                 hideProgressBar: false,
                 closeOnClick: true,
                 pauseOnHover: true,
                 draggable: true,
-                progress: undefined,
+                theme: "dark",
+            });
+            navigate(-1);
+        } catch (error) {
+            console.error('Error updating product:', error.message);
+            toast.error(`Error: ${error.message}`, {
+                position: "top-center",
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
                 theme: "dark",
             });
         }
     };
-    
-    console.log("Check Product Images count",updateProduct); 
-  
+
+    const getImageSrc = (image) => {
+        if (image instanceof File) {
+            return URL.createObjectURL(image);
+        } else if (typeof image === 'string') {
+            return image; // Directly use URL if it's a string
+        }
+        return ''; // Return empty string or a placeholder if the image is not available
+    };
     
     return (
         <>
             <style type="text/css">
                 {`
-                    .mb-row {
-                        margin-bottom: 1rem; /* Adjust the value as needed */
-                    }
+                .mb-row {
+                    margin-bottom: 1rem;
+                }
+                .ck-editor__editable {
+                    min-height: 150px; 
+                    max-height: 400px;
+                    overflow-y: auto;  
+                }
                 `}
             </style>
             <Row className="justify-content-md-center mt-4">
@@ -179,13 +290,14 @@ function ProductUpdate() {
                         <Card.Header>
                             <Row className="align-items-center mb-row">
                                 <Col>
-                                    <Card.Title as="h5">Update Product</Card.Title>
+                                    <Card.Title as="h5">Edit Product</Card.Title>
                                 </Col>
                                 <Col md="auto">
                                     <Button
                                         className="mb-2"
                                         variant="primary"
-                                        onClick={handleBackButtonClick}>
+                                        onClick={handleBackButtonClick}
+                                    >
                                         <FiArrowLeft style={{ marginRight: '5px', fontSize: '15px' }} /> Back
                                     </Button>
                                 </Col>
@@ -193,145 +305,115 @@ function ProductUpdate() {
                         </Card.Header>
                         <Card.Body>
                             {error && <p style={{ color: 'red' }}>{error}</p>}
-                            <Form onSubmit={handleSubmit} encType='multipart/form-data'>
-                                <Row className="mb-row">  
+                            <Form onSubmit={handleSubmit} encType="multipart/form-data">
+                                <Row className="mb-row">
                                     <Col md={4}>
                                         <Form.Group controlId="formProductName">
-                                            <Form.Label>Product Name</Form.Label>
+                                            <Form.Label><b>Product Name</b></Form.Label>
                                             <Form.Control
                                                 type="text"
                                                 placeholder="Enter Product Name"
-                                                name="product_name"
-                                                value={updateProduct.product_name || ''}
+                                                name="product_title"
+                                                value={updateProduct.product_title || ''}
                                                 onChange={handleChange}
                                             />
                                         </Form.Group>
                                     </Col>
                                     <Col md={4}>
-                                        <Form.Group controlId="formCountInStock">
-                                            <Form.Label>Count In Stock</Form.Label>
-                                            <Form.Control
-                                                type="number"
-                                                placeholder="Enter Count In Stock"
-                                                name="countInStock"
-                                                value={updateProduct.countInStock || ''}
-                                                onChange={handleChange}
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={4}>
-                                        <Form.Group controlId="formBrand">
-                                            <Form.Label>Brand</Form.Label>
+                                        <Form.Group controlId="formProductSubtitle">
+                                            <Form.Label><b>Product Subtitle</b></Form.Label>
                                             <Form.Control
                                                 type="text"
-                                                placeholder="Enter Brand Name"
-                                                name="brand"
-                                                value={updateProduct.brand || ''}
+                                                placeholder="Enter Product Subtitle"
+                                                name="product_subtitle"
+                                                value={updateProduct.product_subtitle || ''}
+                                                onChange={handleChange}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={4}>
+                                        <Form.Group controlId="formShortDesc">
+                                            <Form.Label><b>Short Description</b></Form.Label>
+                                            <Form.Control
+                                                as="textarea"
+                                                rows={2}
+                                                placeholder="Enter Short Description"
+                                                name="short_desc"
+                                                value={updateProduct.short_desc || ''}
                                                 onChange={handleChange}
                                             />
                                         </Form.Group>
                                     </Col>
                                 </Row>
                                 <Row className="mb-row">
-                                    <Col md={4}>
-                                        <Form.Group controlId="formDescription">
-                                            <Form.Label>Description</Form.Label>
-                                            <Form.Control
-                                                as="textarea"
-                                                rows={2}
-                                                placeholder="Enter Product Description"
-                                                name="description"
-                                                value={updateProduct.description || ''}
-                                                onChange={handleChange}
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={4}>
-                                        <Form.Group controlId="formNumReviews">
-                                            <Form.Label>Number of Reviews</Form.Label>
-                                            <Form.Control
-                                                type="number"
-                                                placeholder="Enter Number of Reviews"
-                                                name="numReviews"
-                                                value={updateProduct.numReviews || ''}
-                                                onChange={handleChange}
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={4}>
-                                        <Form.Group controlId="formPrice">
-                                            <Form.Label>Price</Form.Label>
-                                            <Form.Control
-                                                type="number"
-                                                placeholder="Enter Price"
-                                                name="price"
-                                                value={updateProduct.price || ''}
-                                                onChange={handleChange}
-                                            />
+                                    <Col md={12}>
+                                        <Form.Group controlId="formLongDesc">
+                                            <Form.Label><b>Long Description</b></Form.Label>
+                                                <CKEditor
+                                                    editor={ClassicEditor}
+                                                    data={updateProduct.long_desc || ''}
+                                                    onChange={(event, editor) => handleEditorChange(event, editor)}
+                                                    config={{
+                                                        toolbar: [
+                                                            'undo', 'redo', '|',
+                                                            'heading', '|', 'bold', 'italic', '|',
+                                                            'paragraph', '|',
+                                                            'link', 'insertTable', 'mediaEmbed', '|',
+                                                            'bulletedList', 'numberedList', 'indent', 'outdent'
+                                                          ],
+                                                    }}
+                                                />
                                         </Form.Group>
                                     </Col>
                                 </Row>
-                                <Row className="mb-row">
-                                    <Col md={4}>
-                                        <Form.Group controlId="formRating">
-                                            <Form.Label>Rating</Form.Label>
-                                            <Form.Control
-                                                type="number"
-                                                placeholder="Enter Product Rating"
-                                                name="rating"
-                                                value={updateProduct.rating || ''}
-                                                onChange={handleChange}
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={4}>
-                                        <Form.Group controlId="formRichDescription">
-                                            <Form.Label>Long Description</Form.Label>
-                                            <Form.Control
-                                                as="textarea"
-                                                rows={2}
-                                                placeholder="Enter Product Long Description"
-                                                name="richDescription"
-                                                value={updateProduct.richDescription || ''}
-                                                onChange={handleChange}
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    
-                                </Row>
+
                                 <Row className="mb-row">
                                     <Col md={4}>
                                         <Form.Group controlId="formCategory">
-                                            <Form.Label>Category</Form.Label>
+                                            <Form.Label><b>Please Select Category</b></Form.Label>
                                             <Form.Select
-                                                as="select"
                                                 name="category"
-                                                value={updateProduct.category || ''}
+                                                value={updateProduct.category}
                                                 onChange={handleCategoryChange}
                                             >
                                                 <option value="">Please Select Category</option>
-                                                {categories.map((cat) => (  
-                                                    <option key={cat._id} value={cat._id} className={cat._id === updateProduct.category._id ? 'selected' : ''}>  
-                                                        {cat.cat_name}
+                                                {categories.map((category) => (
+                                                    <option key={category?._id} value={category?._id}>
+                                                        {category.cat_name}
                                                     </option>
                                                 ))}
                                             </Form.Select>
                                         </Form.Group>
                                     </Col>
-
                                     <Col md={4}>
-                                        <Form.Group controlId="formSubcategory">
-                                            <Form.Label>Sub Category</Form.Label>
+                                        <Form.Group controlId="formSubCategory">
+                                            <Form.Label><b>Please Select Subcategory</b></Form.Label>
                                             <Form.Select
-                                                as="select"
                                                 name="subcategory"
-                                                value={updateProduct.subcategory || ''}
+                                                value={updateProduct.subcategory}
                                                 onChange={handleSubcategoryChange}
                                             >
                                                 <option value="">Please Select Subcategory</option>
-                                                {subcategories.map((subcat) => (
-                                                    <option key={subcat._id} value={subcat._id} className={subcat._id === updateProduct.subcategory._id ? 'selected' : ''}>
-                                                        {subcat.subcat_name}
+                                                {subcategories.map((subcategory) => (
+                                                    <option key={subcategory?._id} value={subcategory?._id}>
+                                                        {subcategory.subcat_name}
+                                                    </option>
+                                                ))}
+                                            </Form.Select>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={4}>
+                                        <Form.Group controlId="formSubsubcategory">
+                                            <Form.Label><b>Please Select Subsubcategory</b></Form.Label>
+                                            <Form.Select
+                                                name="subsubcategory"
+                                                value={updateProduct.subsubcategory}
+                                                onChange={handleSubsubcategoryChange}
+                                            >
+                                                <option value="">Please Select Subsubcategory</option>
+                                                {subsubcategories.map((subsubcategory) => (
+                                                    <option key={subsubcategory?._id} value={subsubcategory?._id}>
+                                                        {subsubcategory.subsubcat_name}
                                                     </option>
                                                 ))}
                                             </Form.Select>
@@ -339,100 +421,231 @@ function ProductUpdate() {
                                     </Col>
                                 </Row>
 
-                                <Row className="mb-row">
-                                    <Col md={4}>
-                                        <Form.Group controlId="formMetaTitle">
-                                            <Form.Label>Meta Title</Form.Label>
-                                            <Form.Control
-                                                type="text"
-                                                placeholder="Enter Product Meta Title"
-                                                name="metaTitle"
-                                                value={updateProduct.metaTitle || ''}
-                                                onChange={handleChange}
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={4}>
-                                        <Form.Group controlId="formMetaDescription">
-                                            <Form.Label>Meta Description</Form.Label>
-                                            <Form.Control
-                                                as="textarea"
-                                                rows={2}
-                                                placeholder="Enter Product Meta Description"
-                                                name="metaDescription"
-                                                value={updateProduct.metaDescription || ''}
-                                                onChange={handleChange}
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={4}>
-                                        <Form.Group controlId="formImage">
-                                            <Form.Label>Image</Form.Label>
-                                            <Form.Control
-                                                type="file"
-                                                name="product_img" // Match Multer field name
-                                                onChange={handleImageSelect}
-                                            />
-                                            {updateProduct.product_img && (
-                                                <Image  height={50} width={50}
-                                                    src={
-                                                        typeof updateProduct.product_img === 'string'
-                                                            ? updateProduct.product_img
-                                                            : URL.createObjectURL(updateProduct.product_img)
-                                                    }
-                                                    alt="Selected Product Image"
-                                                    fluid
-                                                />
-                                            )}
-                                        </Form.Group>
-                                    </Col>
-                                </Row>
-                                
-                                <Row className="mb-row">
-                                    <Col md={6}>
-                                        <Form.Group controlId="formMultipleImage">
-                                            <Form.Label>Product Gallery</Form.Label>
-                                            <Form.Control
-                                                multiple
-                                                type="file"
-                                                name="product_gallery" // Match Multer field name
-                                                onChange={handleMultipleImageUpload}
-                                            />
-                                            <div>
-                                                {updateProduct.product_gallery &&
-                                                    Array.from(updateProduct.product_gallery).map((file, index) => (
-                                                        <Image height={50} width={50}
-                                                            key={index}
-                                                            src={
-                                                                typeof file === 'string'
-                                                                    ? file
-                                                                    : URL.createObjectURL(file)
-                                                            }
-                                                            alt={`Selected Gallery Image ${index}`}
-                                                            fluid
-                                                        />
-                                                    ))}
+                                <Card className="mb-4">
+                                    <Card.Header>
+                                        <h5>Product Attributes</h5>
+                                    </Card.Header>
+                                    <Card.Body>
+                                        {updateProduct.attributes.map((attribute, index) => (
+                                            <div key={index} className="mb-5"> 
+                                                <Row className="mb-2">
+                                                    <Col md={2}>
+                                                        <Form.Group controlId={`formSku${index}`}>
+                                                            <Form.Label><b>SKU</b></Form.Label>
+                                                            <Form.Control
+                                                                placeholder="Please Enter SKU"
+                                                                type="text"
+                                                                name="sku"
+                                                                value={attribute.sku}
+                                                                onChange={(e) => handleAttributeChange(index, e)}
+                                                            />
+                                                        </Form.Group>
+                                                    </Col>
+                                                    <Col md={2}>
+                                                        <Form.Group controlId={`formSku${index}`}>
+                                                            <Form.Label><b>SKU Subtitle</b></Form.Label>
+                                                            <Form.Control
+                                                                placeholder="Please Enter SKU Subtitle"
+                                                                type="text"
+                                                                name="sku_subtitle"
+                                                                value={attribute.sku_subtitle}
+                                                                onChange={(e) => handleAttributeChange(index, e)}
+                                                            />
+                                                        </Form.Group>
+                                                    </Col>
+                                                    <Col md={2}>
+                                                        <Form.Group controlId={`formPrice${index}`}>
+                                                            <Form.Label><b>Price</b></Form.Label>
+                                                            <Form.Control
+                                                                placeholder="Please Enter price"
+                                                                type="number"
+                                                                name="price"
+                                                                value={attribute.price}
+                                                                onChange={(e) => handleAttributeChange(index, e)}
+                                                            />
+                                                        </Form.Group>
+                                                    </Col>
+                                                    <Col md={2}>
+                                                        <Form.Group controlId={`formSalePrice${index}`}>
+                                                            <Form.Label><b>Sale Price</b></Form.Label>
+                                                            <Form.Control
+                                                                placeholder="Please Enter Sale price"
+                                                                type="number"
+                                                                name="sale_price"
+                                                                value={attribute.sale_price}
+                                                                onChange={(e) => handleAttributeChange(index, e)}
+                                                            />
+                                                        </Form.Group>
+                                                    </Col>
+                                                    <Col md={2}>
+                                                        <Form.Group controlId={`formColorName${index}`}>
+                                                            <Form.Label><b>Color Name</b></Form.Label>
+                                                            <Form.Control
+                                                                placeholder="Please Enter color name"
+                                                                type="text"
+                                                                name="color_name"
+                                                                value={attribute.color_name}
+                                                                onChange={(e) => handleAttributeChange(index, e)}
+                                                            />
+                                                        </Form.Group>
+                                                    </Col>
+                                                    <Col md={2}>
+                                                        <Form.Group controlId={`formStock${index}`}>
+                                                            <Form.Label><b>Stock</b></Form.Label>
+                                                            <Form.Control
+                                                                placeholder="Please Enter Stock"
+                                                                type="number"
+                                                                name="stock"
+                                                                value={attribute.stock}
+                                                                onChange={(e) => handleAttributeChange(index, e)}
+                                                            />
+                                                        </Form.Group>
+                                                    </Col>
+                                                </Row>
+                                                <Row>
+                                                    <Col md={2}>
+                                                        <Form.Group controlId={`formSingleImg${index}`}>
+                                                            <Form.Label><b>Single Image</b></Form.Label>
+                                                            {attribute.single_img && (
+                                                                <Image
+                                                                    src={getImageSrc(attribute.single_img)}
+                                                                    alt={attribute.sku}
+                                                                    height={40}
+                                                                    width={40}
+                                                                    style={{ marginBottom: '10px' }}
+                                                                />
+                                                            )}
+                                                            <Form.Control
+                                                                placeholder="Please Select Single Image"
+                                                                type="file"
+                                                                name="single_img"
+                                                                onChange={(e) => handleImageSelect(index, 'single_img', e)}
+                                                            />
+                                                        </Form.Group>
+                                                    </Col>
+                                                    <Col md={2}>
+                                                        <Form.Group controlId={`formColorImage${index}`}>
+                                                            <Form.Label><b>Color Image</b></Form.Label>
+                                                            {attribute.color_image && (
+                                                                <Image
+                                                                    src={getImageSrc(attribute.color_image)}
+                                                                    alt={attribute.sku}
+                                                                    height={40}
+                                                                    width={40}
+                                                                    style={{ marginBottom: '10px',marginTop: '10px' }}
+                                                                />
+                                                            )}
+                                                            <Form.Control
+                                                                placeholder="Please Select Color Image"
+                                                                type="file"
+                                                                name="color_image"
+                                                                onChange={(e) => handleImageSelect(index, 'color_image', e)}
+                                                            />
+                                                        </Form.Group>
+                                                    </Col>
+                                                </Row>
                                             </div>
+                                        ))}
+                                        <Button variant="primary" onClick={addAttribute}>Add More Attributes</Button> 
+                                        <Button variant="danger" onClick={removeAttribute}>Remove Attributes</Button>
+                                    </Card.Body>
+                                </Card>
+
+                                <Row className="mb-row">
+                                    <Card.Header>
+                                        <Card.Title as="h5">Product Detail</Card.Title>
+                                    </Card.Header>
+                                    <Col md={12} className="mb-5">
+                                        <Form.Group controlId="formFeatures">
+                                            <Form.Label><h3>Features</h3></Form.Label>
+                                            <JoditEditor
+                                                name="features"
+                                                value={updateProduct.features || ''}
+                                                onChange={handleEditor2Change('features')}
+                                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(updateProduct.features || '') }}
+                                            />
                                         </Form.Group>
                                     </Col>
-                                    <Col md={6}>
-                                        <Form.Group controlId="formFeatured">
-                                            <Form.Label>Is Featured?</Form.Label>
-                                            <Form.Check
-                                                type="checkbox"
-                                                name="isFeatured"
-                                                checked={updateProduct.isFeatured || false}
-                                                onChange={(e) => setUpdateProduct((prevProduct) => ({
-                                                    ...prevProduct,
-                                                    isFeatured: e.target.checked,
-                                                }))}
+                                    <Col md={12} className="mb-5">
+                                        <Form.Group controlId="formSpecs">
+                                            <Form.Label><h3>Specs</h3></Form.Label>
+                                            <JoditEditor
+                                                name="specs"
+                                                value={updateProduct.specs || ''}
+                                                onChange={handleEditor2Change('specs')}
+                                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(updateProduct.specs || '') }}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={12} className="mb-5">
+                                        <Form.Group controlId="formInstallationService">
+                                            <Form.Label><h3>Installation & Service Parts</h3></Form.Label>
+                                            <JoditEditor
+                                                name="installation_service"
+                                                value={updateProduct.installation_service || ''}
+                                                onChange={handleEditor2Change('installation_service')}
+                                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(updateProduct.installation_service || '') }}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={12} className="mb-5">
+                                        <Form.Group controlId="formAdditionalInfo">
+                                            <Form.Label><h3>Additional Information</h3></Form.Label>
+                                            <JoditEditor
+                                                name="additional_info"
+                                                value={updateProduct.additional_info || ''}
+                                                onChange={handleEditor2Change('additional_info')}
+                                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(updateProduct.additional_info || '') }}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={12} className="mb-5">
+                                        <Form.Group controlId="formReturnsWarranty">
+                                            <Form.Label><h3>Returns & Warranty</h3></Form.Label>
+                                            <JoditEditor
+                                                name="returns_warranty"
+                                                value={updateProduct.returns_warranty || ''}
+                                                onChange={handleEditor2Change('returns_warranty')}
+                                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(updateProduct.returns_warranty || '') }}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={12} className="mb-5">
+                                        <Form.Group controlId="formSpendSave">
+                                            <Form.Label><h3>Spend & Save</h3></Form.Label>
+                                            <JoditEditor
+                                                name="spend_save"
+                                                value={updateProduct.spend_save || ''}
+                                                onChange={handleEditor2Change('spend_save')}
+                                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(updateProduct.spend_save || '') }}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={12} className="mb-5">
+                                        <Form.Group controlId="formNeedHelp">
+                                            <Form.Label><h3>Need Help</h3></Form.Label>
+                                            <JoditEditor
+                                                name="need_help"
+                                                value={updateProduct.need_help || ''}
+                                                onChange={handleEditor2Change('need_help')}
+                                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(updateProduct.need_help || '') }}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={12} className="mb-5">
+                                        <Form.Group controlId="formFreeShipping">
+                                            <Form.Label><h3>Free Shipping</h3></Form.Label>
+                                            <JoditEditor
+                                                name="free_shipping"
+                                                value={updateProduct.free_shipping || ''}
+                                                onChange={handleEditor2Change('free_shipping')}
+                                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(updateProduct.free_shipping || '') }}
                                             />
                                         </Form.Group>
                                     </Col>
                                 </Row>
-                                <Button variant="primary" type="submit">
-                                    Update Product
-                                </Button>
+
+                                <Button type="submit" className="mt-3">Submit</Button>
                             </Form>
                         </Card.Body>
                     </Card>
@@ -440,6 +653,6 @@ function ProductUpdate() {
             </Row>
         </>
     );
-}
+};
 
-export default ProductUpdate;
+export default EditProduct;

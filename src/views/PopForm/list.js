@@ -30,7 +30,7 @@ function PopFormList() {
             setError(err.message);
         }
     };
-    //console.log("Appointment",appointment)
+    console.log("Popup",appointment)
     useEffect(() => {
         fetchData();
     }, []);
@@ -118,10 +118,11 @@ function PopFormList() {
                                 <tr>
                                     <th>Sr. No.</th>
                                     <th>User Pic</th>
-                                    <th>First Name</th>
-                                    <th>Last Name</th>
+                                    <th>Sku</th>
+                                    <th>Sku Subtitle</th>
                                     <th>Email</th>
                                     <th>Phone</th>
+                                    <th>Name</th>
                                     <th>Date</th>
                                     <th>Action</th>
                                 </tr>
@@ -135,16 +136,19 @@ function PopFormList() {
                                                 <img className="rounded-circle" style={{ width: '40px' }} src={asiamama} alt="activity-user" />
                                             </td>
                                             <td>
-                                                <h6 className="mb-1">{appointment.fname}</h6>
+                                                <h6 className="mb-1">{appointment.sku}</h6>
                                             </td>
                                             <td>
-                                                <h6 className="mb-1">{appointment.lname}</h6>
+                                                <h6 className="mb-1">{appointment.sku_subtitle}</h6>
                                             </td>
                                             <td>
                                                 <h6 className="mb-1">{appointment.email}</h6>
                                             </td>
                                             <td>
                                                 <h6 className="mb-1">{appointment.phone}</h6>
+                                            </td>
+                                            <td>
+                                                <h6 className="mb-1">{appointment.name}</h6>
                                             </td>
                                             <td>
                                                 <h6 className="m-0">{moment(appointment.dateCreated).format('Do MMMM YYYY')}</h6>

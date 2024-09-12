@@ -8,6 +8,8 @@ import { CKEditor } from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import 'ckeditor5/ckeditor5.css';
 import { BASE_URL } from '../../config/apiurl';
+import JoditEditor from 'jodit-react';
+import DOMPurify from 'dompurify';
 
 const EditProduct = () => {
     const location = useLocation();
@@ -20,35 +22,62 @@ const EditProduct = () => {
         category: '',
         subcategory: '',
         subsubcategory: '',
-        attributes: [{ sku: '', single_img: null, price: '', sale_price: '', color_name: '', color_image: null, stock: '' }],
+        features: '',
+        specs: '',
+        installation_service: '',
+        additional_info: '',
+        returns_warranty: '',
+        spend_save: '',
+        need_help: '',
+        free_shipping: '',
+        attributes: [{ sku: '', sku_subtitle: '', single_img: null, price: '', sale_price: '', color_name: '', color_image: null, stock: '' }],
     });
     const [categories, setCategories] = useState([]);
     const [subcategories, setSubcategories] = useState([]);
     const [subsubcategories, setSubsubcategories] = useState([]);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
-
+    //console.log("Check Update",prod)
+    console.log("Check Update Product",updateProduct)
     const handleBackButtonClick = () => {
         navigate(-1);
     };
 
     useEffect(() => {
+        console.log('Product from location:', prod); // Debugging line
+    
         if (prod) {
             setUpdateProduct({
-                product_title: prod.product_title,
-                product_subtitle: prod.product_subtitle,
-                short_desc: prod.short_desc,
-                long_desc: prod.long_desc,
+                product_title: prod.product_title || '',
+                product_subtitle: prod.product_subtitle || '',
+                short_desc: prod.short_desc || '',
+                long_desc: prod.long_desc || '',
                 category: prod.category?._id || '',
                 subcategory: prod.subcategory?._id || '',
                 subsubcategory: prod.subsubcategory?._id || '',
-                attributes: prod.attributes || [{ sku: '', single_img: null, price: '', sale_price: '', color_name: '', color_image: null, stock: '' }],
+                features: prod.features || '',
+                specs: prod.specs || '',
+                installation_service: prod.installation_service || '',
+                additional_info: prod.additional_info || '',
+                returns_warranty: prod.returns_warranty || '',
+                spend_save: prod.spend_save || '',
+                need_help: prod.need_help || '',
+                free_shipping: prod.free_shipping || '',
+                attributes: prod.attributes || [{ sku: '', sku_subtitle: '', single_img: null, price: '', sale_price: '', color_name: '', color_image: null, stock: '' }],
             });
-
             if (prod.category?._id) fetchSubcategories(prod.category?._id);
             if (prod.subcategory?._id) fetchSubsubcategories(prod.subcategory?._id);
         }
     }, [prod]);
+    
+    // In handleEditor2Change
+    const handleEditor2Change = (field) => (content) => {
+        console.log('Editor content:', content); // Debugging line
+        setUpdateProduct((prevProduct) => ({
+            ...prevProduct,
+            [field]: content
+        }));
+    };
 
     
     useEffect(() => {
@@ -150,7 +179,7 @@ const EditProduct = () => {
     const addAttribute = () => {
         setUpdateProduct((prevProduct) => ({
             ...prevProduct,
-            attributes: [...prevProduct.attributes, { sku: '', single_img: null, price: '', sale_price: '', color_name: '', color_image: null, stock: '' }]
+            attributes: [...prevProduct.attributes, { sku: '', sku_subtitle: '', single_img: null, price: '', sale_price: '', color_name: '', color_image: null, stock: '' }]
         }));
     };
 
@@ -173,8 +202,10 @@ const EditProduct = () => {
         }));
     };
 
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        console.log('Submitting:', updateProduct);
         try {
             const formData = new FormData();
             Object.keys(updateProduct).forEach((key) => {
@@ -196,7 +227,7 @@ const EditProduct = () => {
 
             if (!response.ok) throw new Error('Failed to update product');
 
-            const data = await response.json();
+            const data = await response.json(); 
             toast.success(data,'Product updated successfully!', {
                 position: "top-center",
                 autoClose: 2000,
@@ -229,7 +260,7 @@ const EditProduct = () => {
         }
         return ''; // Return empty string or a placeholder if the image is not available
     };
-
+    
     return (
         <>
             <style type="text/css">
@@ -413,6 +444,18 @@ const EditProduct = () => {
                                                         </Form.Group>
                                                     </Col>
                                                     <Col md={2}>
+                                                        <Form.Group controlId={`formSku${index}`}>
+                                                            <Form.Label><b>SKU Subtitle</b></Form.Label>
+                                                            <Form.Control
+                                                                placeholder="Please Enter SKU Subtitle"
+                                                                type="text"
+                                                                name="sku_subtitle"
+                                                                value={attribute.sku_subtitle}
+                                                                onChange={(e) => handleAttributeChange(index, e)}
+                                                            />
+                                                        </Form.Group>
+                                                    </Col>
+                                                    <Col md={2}>
                                                         <Form.Group controlId={`formPrice${index}`}>
                                                             <Form.Label><b>Price</b></Form.Label>
                                                             <Form.Control
@@ -509,6 +552,100 @@ const EditProduct = () => {
                                         <Button variant="danger" onClick={removeAttribute}>Remove Attributes</Button>
                                     </Card.Body>
                                 </Card>
+
+                                <Row className="mb-row">
+                                    <Card.Header>
+                                        <Card.Title as="h5">Product Detail</Card.Title>
+                                    </Card.Header>
+                                    <Col md={12} className="mb-5">
+                                        <Form.Group controlId="formFeatures">
+                                            <Form.Label><h3>Features</h3></Form.Label>
+                                            <JoditEditor
+                                                name="features"
+                                                value={updateProduct.features || ''}
+                                                onChange={handleEditor2Change('features')}
+                                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(updateProduct.features || '') }}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={12} className="mb-5">
+                                        <Form.Group controlId="formSpecs">
+                                            <Form.Label><h3>Specs</h3></Form.Label>
+                                            <JoditEditor
+                                                name="specs"
+                                                value={updateProduct.specs || ''}
+                                                onChange={handleEditor2Change('specs')}
+                                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(updateProduct.specs || '') }}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={12} className="mb-5">
+                                        <Form.Group controlId="formInstallationService">
+                                            <Form.Label><h3>Installation & Service Parts</h3></Form.Label>
+                                            <JoditEditor
+                                                name="installation_service"
+                                                value={updateProduct.installation_service || ''}
+                                                onChange={handleEditor2Change('installation_service')}
+                                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(updateProduct.installation_service || '') }}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={12} className="mb-5">
+                                        <Form.Group controlId="formAdditionalInfo">
+                                            <Form.Label><h3>Additional Information</h3></Form.Label>
+                                            <JoditEditor
+                                                name="additional_info"
+                                                value={updateProduct.additional_info || ''}
+                                                onChange={handleEditor2Change('additional_info')}
+                                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(updateProduct.additional_info || '') }}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={12} className="mb-5">
+                                        <Form.Group controlId="formReturnsWarranty">
+                                            <Form.Label><h3>Returns & Warranty</h3></Form.Label>
+                                            <JoditEditor
+                                                name="returns_warranty"
+                                                value={updateProduct.returns_warranty || ''}
+                                                onChange={handleEditor2Change('returns_warranty')}
+                                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(updateProduct.returns_warranty || '') }}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={12} className="mb-5">
+                                        <Form.Group controlId="formSpendSave">
+                                            <Form.Label><h3>Spend & Save</h3></Form.Label>
+                                            <JoditEditor
+                                                name="spend_save"
+                                                value={updateProduct.spend_save || ''}
+                                                onChange={handleEditor2Change('spend_save')}
+                                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(updateProduct.spend_save || '') }}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={12} className="mb-5">
+                                        <Form.Group controlId="formNeedHelp">
+                                            <Form.Label><h3>Need Help</h3></Form.Label>
+                                            <JoditEditor
+                                                name="need_help"
+                                                value={updateProduct.need_help || ''}
+                                                onChange={handleEditor2Change('need_help')}
+                                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(updateProduct.need_help || '') }}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={12} className="mb-5">
+                                        <Form.Group controlId="formFreeShipping">
+                                            <Form.Label><h3>Free Shipping</h3></Form.Label>
+                                            <JoditEditor
+                                                name="free_shipping"
+                                                value={updateProduct.free_shipping || ''}
+                                                onChange={handleEditor2Change('free_shipping')}
+                                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(updateProduct.free_shipping || '') }}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
 
                                 <Button type="submit" className="mt-3">Submit</Button>
                             </Form>

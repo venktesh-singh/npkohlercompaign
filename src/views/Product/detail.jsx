@@ -3,6 +3,7 @@ import { Row, Col, Card, Button, Image } from 'react-bootstrap';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
 import moment from 'moment';
+import DOMPurify from 'dompurify';
 
 const ProductDetail = () => {
     const navigate = useNavigate();
@@ -62,7 +63,7 @@ const ProductDetail = () => {
                                     <Card.Text><b>Short Desc:</b> {proData?.short_desc}</Card.Text>
                                 </Col>
                                 <Col md={12} className='mt-4'>
-                                    <Card.Text><b>Long Desc:</b> {proData?.long_desc}</Card.Text>
+                                    <Card.Text><b>Long Desc:</b> <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(proData?.long_desc || '') }} /></Card.Text>
                                 </Col>
                                 <Col md={12} className='mt-4'>
                                     <Card.Text><b>Date Created:</b> {moment(proData?.dateCreated).format('Do MMMM YYYY')}</Card.Text>
@@ -116,6 +117,55 @@ const ProductDetail = () => {
                                     
                                 </Row>
                             ))}
+                        </Card.Body>
+                    </Card>
+                </Col>
+            </Row>
+
+            <Row className="justify-content-md-center mt-4">
+                <Col md={12}>
+                    <Card className="user-list">
+                        <Card.Header>
+                            <Row className="align-items-center">
+                                <Col>
+                                    <Card.Title as="h5">Product Attributes</Card.Title>
+                                </Col>
+                            </Row>
+                        </Card.Header>
+
+                        <Card.Body>
+                            
+                            <Row className="mb-3">
+                                <Col md={12} className="mb-3">
+                                    <Card.Text><h3>Features:</h3>  <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(proData?.features || '') }} /></Card.Text>
+                                </Col>
+                                
+                                <Col md={12} className="mb-3">
+                                    <Card.Text><h3>Specs:</h3>  <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(proData?.specs || '') }} /></Card.Text>
+                                </Col>
+                                <Col md={12} className="mb-3">
+                                    <Card.Text><h3>Installation & Service Parts:</h3>  <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(proData?.installation_service || '') }} /></Card.Text>
+                                </Col>
+                                <Col md={12} className="mb-3">
+                                    <Card.Text><h3>Additional Information:</h3><div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(proData?.additional_info || '') }} /></Card.Text>
+                                </Col>
+                                <Col md={12} className="mb-3">
+                                    <Card.Text><h3>Returns & Warranty:</h3> <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(proData?.returns_warranty || '') }} /></Card.Text>
+                                </Col>
+                                <Col md={12} className="mb-3">
+                                    <Card.Text><h3>Spend & Save:</h3> <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(proData?.spend_save || '') }} /></Card.Text>
+                                </Col>
+                                <Col md={12} className="mb-3">
+                                    <Card.Text><h3>Need Help:</h3> <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(proData?.need_help || '') }} /></Card.Text>
+                                </Col>
+                                <Col md={12} className="mb-3">
+                                    <Card.Text>
+                                        <h3>Free Shipping:</h3>
+                                        <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(proData?.free_shipping || '') }} />
+                                    </Card.Text>
+                                </Col>
+                            </Row>
+                           
                         </Card.Body>
                     </Card>
                 </Col>
